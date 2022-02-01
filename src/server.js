@@ -35,6 +35,11 @@ function publicRooms() {
     return publicRooms;
 }
 
+function countRoom(roomName) {
+    return wsServer.sockets.adapter.rooms.get(roomName)?.size; // roomName을 찾거나 아니거나
+}
+
+
 //connection 받을 준비  
 wsServer.on("connection", socket => {
     socket['nickname'] = "Anon";
@@ -46,12 +51,14 @@ wsServer.on("connection", socket => {
         console.log(socket.rooms); //Set(1) { '9GHqFz-JRt1c0ylLAAAB' }
         socket.join(roomName); // 1. 방에 참가 
         console.log(socket.rooms); //Set(2) { '9GHqFz-JRt1c0ylLAAAB', 'ruby' }
-        done();
-        socket.to(roomName).emit("welcome",socket.nickname); // 2. welcome (나를 제외하고 모든 채팅방에 보냄)
+        done(); //백엔드에서 코드가 시작되도록 해줌
+        socket.to(roomName).emit("welcome",socket.nickname, countRoom(roomName)); // 2. welcome (나를 제외하고 모든 채팅방에 보냄), 하나의 소켓
         wsServer.sockets.emit("room_change", publicRooms()); // 연결된 모든 소켓에게 보내줌
     })
-    socket.on("diconnecting", () => { //disconnecting 이벤트는 socket이 방을 떠나기 직전에 발생, 아직 방을 완전히 떠나지 않음
-        socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname)) //연결을 끊은 사람 제외하고 보내짐
+    socket.on("disconnecting", () => { //disconnecting 이벤트는 socket이 방을 떠나기 직전에 발생, 아직 방을 완전히 떠나지 않음
+        socket.rooms.forEach((room) => 
+        socket.to(room).emit("bye", socket.nickname, countRoom(room) - 1)
+        ); //연결을 끊은 사람 제외하고 보내짐, -1은 떠나는 방 제외 count
     })
     socket.on("disconnect", () => {
         wsServer.sockets.emit("room_change", publicRooms())
@@ -91,6 +98,7 @@ wsServer.on("connection", socket => {
 
 httpServer.listen(3000,handleListen); //동일한 포트 공유
 // app.listen(3000, handleListen)
+
 
 
 
