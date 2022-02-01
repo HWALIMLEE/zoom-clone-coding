@@ -3,7 +3,7 @@ import { handle } from "express/lib/application";
 import http from "http";
 import SocketIo from "socket.io"
 // import WebSocket from "ws";
-const app = express();
+const app = express(); 
 
 app.set("view engine","pug"); //view engine
 app.set("views", __dirname + "/views");
@@ -17,14 +17,28 @@ const httpServer = http.createServer(app); //http
 // const wss = new WebSocket.Server({ server });  //wss(htp 서버 위애 websocket 서버)
 const wsServer = SocketIo(httpServer);
 
-//connection 받을 준비 
+//connection 받을 준비  
 wsServer.on("connection", socket => {
-    socket.on("enter_room", (msg, done) => { 
-        console.log(msg);
-        setTimeout(() => {
-            done()
-        }, 10000)
+    socket['nickname'] = "Anon";
+    socket.onAny((event) => {
+        console.log(`Socket Event:${event}`) //Socket Event:enter_room
+    });
+    socket.on("enter_room",(roomName,done) => {
+        console.log(socket.id); // 9GHqFz-JRt1c0ylLAAAB 
+        console.log(socket.rooms); //Set(1) { '9GHqFz-JRt1c0ylLAAAB' }
+        socket.join(roomName); // 1. 방에 참가 
+        console.log(socket.rooms); //Set(2) { '9GHqFz-JRt1c0ylLAAAB', 'ruby' }
+        done();
+        socket.to(roomName).emit("welcome"); // 2. welcome (나를 제외하고 모든 채팅방에 보냄)
     })
+    socket.on("diconnecting", () => {
+        socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname)) //연결을 끊은 사람 제외하고 보내짐
+    })
+    socket.on("new_message", (msg, room, done) => {
+        socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
+        done(); // 프론트 엔드에서 실행하는 부분
+    })
+    socket.on('nickname', (nickname) => (socket['nickname'] = nickname)) //object
 })
 
 
