@@ -18,7 +18,8 @@ const httpServer = http.createServer(app); //http
 const wsServer = SocketIo(httpServer);
 
 function publicRooms() {
-    const {sockets : {
+    const {
+        sockets : {
             adapter : {sids,rooms},
         },
     } = wsServer; //sexy coding
@@ -30,7 +31,7 @@ function publicRooms() {
         if (sids.get(key) === undefined) {
             publicRooms.push(key)
         }
-    })
+    });
     return publicRooms;
 }
 
@@ -46,10 +47,10 @@ wsServer.on("connection", socket => {
         socket.join(roomName); // 1. 방에 참가 
         console.log(socket.rooms); //Set(2) { '9GHqFz-JRt1c0ylLAAAB', 'ruby' }
         done();
-        socket.to(roomName).emit("welcome",socket.nickname); // 2. welcome (나를 제외하고 모든 채팅방에 보냄), 하나의 소켓
+        socket.to(roomName).emit("welcome",socket.nickname); // 2. welcome (나를 제외하고 모든 채팅방에 보냄)
         wsServer.sockets.emit("room_change", publicRooms()); // 연결된 모든 소켓에게 보내줌
     })
-    socket.on("diconnecting", () => { //disconnecting 이벤트는 socket이 방을 떠나기 직전에 발생
+    socket.on("diconnecting", () => { //disconnecting 이벤트는 socket이 방을 떠나기 직전에 발생, 아직 방을 완전히 떠나지 않음
         socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname)) //연결을 끊은 사람 제외하고 보내짐
     })
     socket.on("disconnect", () => {
