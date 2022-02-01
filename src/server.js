@@ -1,7 +1,8 @@
 import express from "express";
 import { handle } from "express/lib/application";
 import http from "http";
-import SocketIo from "socket.io"
+import {Server} from "socket.io"
+import { instrument } from "@socket.io/admin-ui";
 // import WebSocket from "ws";
 const app = express(); 
 
@@ -15,7 +16,16 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`)
 
 const httpServer = http.createServer(app); //http
 // const wss = new WebSocket.Server({ server });  //wss(htp 서버 위애 websocket 서버)
-const wsServer = SocketIo(httpServer);
+const wsServer = new Server(httpServer ,{// 온라인 데모 works
+    cors: {
+        origin: ["https://admin.socket.io"],
+        credentials: true,
+    },
+});
+
+instrument(wsServer, {
+    auth: false,
+});
 
 function publicRooms() {
     const {
