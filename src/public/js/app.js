@@ -69,3 +69,19 @@ socket.on("bye", (left) => {
 
 socket.on("new_message", addMessage); // 메시지를 받는 부분(보내고 다른 사이트에서)
 // = socket.on("new_message", (msg) => {addMessage(msg)})
+
+// socket.on("room_change", console.log)
+// socket.on("room_change", (msg) => console.log(msg)); //위와 동일한 코드
+
+socket.on("room_change", (rooms) => {
+    const roomList = welcome.querySelector("ul");
+    roomList.innerHTML = "";
+    if (rooms.length === 0) {
+        return ;
+    }
+    rooms.forEach(room => {
+        const li = document.createElement("li");
+        li.innterText = room;
+        roomList.append(li);
+    });
+})

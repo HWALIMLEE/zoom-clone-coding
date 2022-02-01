@@ -17,6 +17,23 @@ const httpServer = http.createServer(app); //http
 // const wss = new WebSocket.Server({ server });  //wss(htp 서버 위애 websocket 서버)
 const wsServer = SocketIo(httpServer);
 
+function publicRooms() {
+    const {sockets : {
+            adapter : {sids,rooms},
+        },
+    } = wsServer; //sexy coding
+    // equal this code
+    // const sids = wsServer.sockets.adapter.sids;
+    // const rooms = wsServer.socketes.adapter.rooms;
+    const publicRooms = [];
+    rooms.forEach((_, key) => {
+        if (sids.get(key) === undefined) {
+            publicRooms.push(key)
+        }
+    })
+    return publicRooms;
+}
+
 //connection 받을 준비  
 wsServer.on("connection", socket => {
     socket['nickname'] = "Anon";
@@ -29,10 +46,14 @@ wsServer.on("connection", socket => {
         socket.join(roomName); // 1. 방에 참가 
         console.log(socket.rooms); //Set(2) { '9GHqFz-JRt1c0ylLAAAB', 'ruby' }
         done();
-        socket.to(roomName).emit("welcome",socket.nickname); // 2. welcome (나를 제외하고 모든 채팅방에 보냄)
+        socket.to(roomName).emit("welcome",socket.nickname); // 2. welcome (나를 제외하고 모든 채팅방에 보냄), 하나의 소켓
+        wsServer.sockets.emit("room_change", publicRooms()); // 연결된 모든 소켓에게 보내줌
     })
-    socket.on("diconnecting", () => {
+    socket.on("diconnecting", () => { //disconnecting 이벤트는 socket이 방을 떠나기 직전에 발생
         socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname)) //연결을 끊은 사람 제외하고 보내짐
+    })
+    socket.on("disconnect", () => {
+        wsServer.sockets.emit("room_change", publicRooms())
     })
     socket.on("new_message", (msg, room, done) => {
         socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
@@ -41,6 +62,10 @@ wsServer.on("connection", socket => {
     socket.on('nickname', (nickname) => (socket['nickname'] = nickname)) //object
 })
 
+// in memory adapter 
+// monogodb를 통해서 서버 간 통신
+// adapter는 어플리케이션으로 통하는 창문(누가 연결되어 있는지, room이 얼마나 있는지)
+// socket은 private room(socket id) + public room(내가 만든 방 이름)
 
 // const sockets = []; //browser 추가
 
