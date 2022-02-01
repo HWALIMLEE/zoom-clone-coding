@@ -60,10 +60,14 @@ form.addEventListener("submit",handleRoomSubmit);
 
 
 socket.on('welcome', (user) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName}`
     addMessage(`${user} joined!`)
 })
 
 socket.on("bye", (left) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName}`
     addMessage(`${left} left ㅠㅠ`)
 })
 
@@ -79,9 +83,9 @@ socket.on("room_change", (rooms) => {
     if (rooms.length === 0) {
         return ;
     }
-    rooms.forEach(room => {
+    rooms.forEach((room) => {
         const li = document.createElement("li");
-        li.innterText = room;
+        li.innerText = room;
         roomList.append(li);
     });
 })
