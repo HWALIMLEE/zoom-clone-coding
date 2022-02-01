@@ -8,6 +8,7 @@ const room =  document.getElementById("room");
 room.hidden= true;
 
 let roomName;
+let userName;
 
 function backendDone(msg) {
     console.log(`The msg from backend:`,msg); 
@@ -42,19 +43,20 @@ function showRoom() {
     const h3 = room.querySelector("h3");
     h3.innerText = `Room ${roomName}`
     const msgForm = room.querySelector("#msg");
-    const nameForm = room.querySelector("#name");
     msgForm.addEventListener("submit",handleMessageSubmit);
-    nameForm.addEventListener("submit",handleNicknameSubmit);
 }
 
 function handleRoomSubmit(event) {
     event.preventDefault(); 
-    const input = form.querySelector("input");
-    socket.emit("enter_room", input.value, //여러개의 argument넣을 수 있음
+    const roomInput = form.querySelector("#roomName");
+    const nameInput = form.querySelector("#userName");
+    socket.emit("enter_room", roomInput.value, nameInput.value, //여러개의 argument넣을 수 있음
         showRoom // function이 가장 마지막 argument
     )
-    roomName = input.value; 
-    input.value = "";
+    roomName = roomInput.value;
+    nickName = nameInput.value;
+    roomName.value = '';
+    nickName.value = '';
 }
 form.addEventListener("submit",handleRoomSubmit);
 

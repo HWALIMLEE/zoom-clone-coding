@@ -23,13 +23,14 @@ wsServer.on("connection", socket => {
     socket.onAny((event) => {
         console.log(`Socket Event:${event}`) //Socket Event:enter_room
     });
-    socket.on("enter_room",(roomName,done) => {
+    socket.on("enter_room",(roomName,nickName, done) => {
         console.log(socket.id); // 9GHqFz-JRt1c0ylLAAAB 
         console.log(socket.rooms); //Set(1) { '9GHqFz-JRt1c0ylLAAAB' }
         socket.join(roomName); // 1. 방에 참가 
         console.log(socket.rooms); //Set(2) { '9GHqFz-JRt1c0ylLAAAB', 'ruby' }
+        socket['nickname'] = nickName;
         done();
-        socket.to(roomName).emit("welcome"); // 2. welcome (나를 제외하고 모든 채팅방에 보냄)
+        socket.to(roomName).emit("welcome",socket.nickname); // 2. welcome (나를 제외하고 모든 채팅방에 보냄)
     })
     socket.on("diconnecting", () => {
         socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname)) //연결을 끊은 사람 제외하고 보내짐
