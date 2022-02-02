@@ -1,6 +1,5 @@
+// 채팅파트
 const socket = io(); //io function은 알아서 socket.io를 실행하고 있는 서버를 찾을 것
-
-
 const welcome = document.getElementById("welcome")
 const form = welcome.querySelector("form"); // frontend에서 실행된 코드는 backend가 실행을 시킨 것
 const room =  document.getElementById("room");
