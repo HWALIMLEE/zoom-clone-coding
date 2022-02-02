@@ -4,19 +4,38 @@ const socket = io();
 const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
+const camerasSelect = document.getElementById("cameras");
 
 let myStream;
 let muted = false;
 let cameraOff = false;
 
+async function getCameras() {
+    try{
+        const devices = await navigator.mediaDevices.enumerateDevices(); //모든 디바이스
+        const cameras = devices.filter((device) => device.kind === 'videoinput'); // if 문으로 안써줘도 됨
+        cameras.forEach((camera) => {
+            const option = document.createElement("option");
+            option.value = camera.deviceId;
+            option.innerText = camera.label;
+            camerasSelect.appendChild(option)
+        })
+        console.log(cameras);
+        console.log(devices);
+    }catch(e){
+        console.log(e);
+    }
+}
+
 async function getMedia() {
     try{
-        myStream = await navigator.mediaDevices.getUserMedia(
+        myStream = await navigator.mediaDevices.getUserMedia ( //유저의 카메라와 오디오를 가져옴
         {
             audio:true,
             video: true
         });
         myFace.srcObject = myStream;
+        await getCameras();
     } catch(e){
         console.log(e);
     }
@@ -27,9 +46,9 @@ getMedia();
 function handleMuteClick() {
     myStream
         .getAudioTracks()
-        .forEach((track) => (track.enabled = !track.enabled))
+        .forEach((track) => (track.enabled = !track.enabled)) //새로운 상태는 현재 상태의 반대
     if (!muted) {
-        muteBtn.innerText = "Unmute" //음소거가 되어 있지 않기 때문에 클릭을 하면 음소거
+        muteBtn.innerText = "Unmute" 
         muted = true;
     }else{
         muteBtn.innerText = "Mute"
